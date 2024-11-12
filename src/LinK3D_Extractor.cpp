@@ -252,7 +252,7 @@ namespace BoW3D
         }
     }
 
-
+    // Explain: calculate mean(x*x+y*y)
     float LinK3D_Extractor::computeClusterMean(vector<PointXYZSCA> &cluster)
     {        
         float distSum = 0;
@@ -266,6 +266,7 @@ namespace BoW3D
         return (distSum/numPt);
     }
 
+    // Explain: calculate mean(x), mean(y)
     void LinK3D_Extractor::computeXYMean(vector<PointXYZSCA> &cluster, std::pair<float, float> &xyMeans)
     {         
         int numPt = cluster.size();
@@ -283,6 +284,7 @@ namespace BoW3D
         xyMeans = std::make_pair(xMean, yMean);
     }
 
+    // Explain: calculate
     void LinK3D_Extractor::getCluster(const ScanEdgePoints &sectorAreaCloud, ScanEdgePoints &clusters)
     {    
         ScanEdgePoints tmpclusters;
@@ -614,7 +616,7 @@ namespace BoW3D
                         continue;
                     }
                     
-                    if(deter > 0)
+                    if(deter > 0)  // 逆时针夹角小于 180°
                     {
                         areaNum = ceil((angle - 1) / 2);                         
                     }
@@ -703,7 +705,7 @@ namespace BoW3D
             
             //Used for removing the repeated matches.
             matchedIndexScore.insert(std::make_pair(i, highestIndexScore.second)); //Record i and its corresponding score.
-            mMatchedIndex.insert(std::make_pair(highestIndexScore.first, i)); //Record the corresponding match between j and i.
+            mMatchedIndex.insert(std::make_pair(highestIndexScore.first, i)); //Record the corresponding match between j and i. 
             sIndex.insert(highestIndexScore.first); //Record the index that may be repeated matches.
         }
 
@@ -854,7 +856,7 @@ namespace BoW3D
         }
     }
 
-    void LinK3D_Extractor::operator()(pcl::PointCloud<pcl::PointXYZ>::Ptr pLaserCloudIn, vector<pcl::PointXYZI> &keyPoints, cv::Mat &descriptors, ScanEdgePoints &validCluster)
+    void LinK3D_Extractor::operator()(pcl::PointCloud<PointXYZIRT>::Ptr pLaserCloudIn, vector<pcl::PointXYZI> &keyPoints, cv::Mat &descriptors, ScanEdgePoints &validCluster)
     {
         ScanEdgePoints edgePoints;
         extractEdgePoint(pLaserCloudIn, edgePoints);

@@ -93,16 +93,18 @@ namespace BoW3D
     }
        
 
-    void BoW3D::retrieve(Frame* pCurrentFrame, int &loopFrameId, Eigen::Matrix3d &loopRelR, Eigen::Vector3d &loopRelt)
+    void BoW3D::retrieve(Frame* pCurrentFrame, int &loopFrameId, Eigen::Matrix3d &loopRelR, Eigen::Vector3d &loopRelt, float& noise)
     {        
         int frameId = pCurrentFrame->mnId;
 
         cv::Mat descriptors = pCurrentFrame->mDescriptors;      
         size_t rowSize = descriptors.rows;       
         
-        map<int, int>mScoreFrameID;
+        map<int, int> mFrameScore;  // save all frame with score
+        map<int, int> mScoreFrameID;
+        candidateFrame.clear();         // save candidate score with frame id 
 
-        if(rowSize < (size_t)num_add_retrieve_features) 
+        if(rowSize < (size_t)num_add_retrieve_features)  // 只取最多前五个最近点描述符
         {
             for(size_t i = 0; i < rowSize; i++)
             {
@@ -145,7 +147,7 @@ namespace BoW3D
                                     continue;
                                 }
 
-                                auto placeNumIt = mPlaceScore.find(*placesIter);                    
+                                auto placeNumIt = mPlaceScore.find(*placesIter); // find {frame, i} i:first i descriptor
                                 
                                 if(placeNumIt == mPlaceScore.end())
                                 {                                
@@ -162,6 +164,15 @@ namespace BoW3D
 
                 for(auto placeScoreIter = mPlaceScore.begin(); placeScoreIter != mPlaceScore.end(); placeScoreIter++)
                 {
+                    // add code to save frame with max score
+                    if(mFrameScore.find(((*placeScoreIter).first).first) == mFrameScore.end())
+                        mFrameScore[((*placeScoreIter).first).first] = (*placeScoreIter).second;
+                    else
+                    {
+                        if(mFrameScore[((*placeScoreIter).first).first] < (*placeScoreIter).second)
+                            mFrameScore[((*placeScoreIter).first).first] = (*placeScoreIter).second;
+                    }
+                    // there will cover data before
                     if((*placeScoreIter).second > thf) 
                     {
                        mScoreFrameID[(*placeScoreIter).second] = ((*placeScoreIter).first).first;
@@ -230,6 +241,15 @@ namespace BoW3D
 
                 for(auto placeScoreIter = mPlaceScore.begin(); placeScoreIter != mPlaceScore.end(); placeScoreIter++)
                 {
+                    // add code to save frame with max score
+                    if(mFrameScore.find(((*placeScoreIter).first).first) == mFrameScore.end())
+                        mFrameScore[((*placeScoreIter).first).first] = (*placeScoreIter).second;
+                    else
+                    {
+                        if(mFrameScore[((*placeScoreIter).first).first] < (*placeScoreIter).second)
+                            mFrameScore[((*placeScoreIter).first).first] = (*placeScoreIter).second;
+                    }
+                    // there will cover data before
                     if((*placeScoreIter).second > thf) 
                     {
                        mScoreFrameID[(*placeScoreIter).second] = ((*placeScoreIter).first).first;
@@ -242,6 +262,13 @@ namespace BoW3D
         {
             return;
         }
+
+        for(auto it:mFrameScore)
+        {
+            candidateFrame.emplace_back(make_pair(it.second, it.first));
+        }
+
+        sort(candidateFrame.begin(), candidateFrame.end(), [](const pair<int, int> &a, const pair<int, int> &b){return a.first > b.first;});
 
         for(auto it = mScoreFrameID.rbegin(); it != mScoreFrameID.rend(); it++)
         {          
@@ -256,9 +283,10 @@ namespace BoW3D
             Eigen::Matrix3d loopRelativeR;
             Eigen::Vector3d loopRelativet;
                                 
-            returnValue = loopCorrection(pCurrentFrame, pLoopFrame, vMatchedIndex, loopRelativeR, loopRelativet);
-
-            //The distance between the loop and the current should less than 3m.                  
+            returnValue = loopCorrection(pCurrentFrame, pLoopFrame, vMatchedIndex, loopRelativeR, loopRelativet, noise);
+         
+            //The distance between the loop and the current should less than 3m.
+            /*
             if(returnValue != -1 && loopRelativet.norm() < 3 && loopRelativet.norm() > 0) 
             {
                 loopFrameId = (*it).second;
@@ -266,7 +294,8 @@ namespace BoW3D
                 loopRelt = loopRelativet;                         
                 
                 return;
-            }     
+            }  
+            */
         } 
     }
 

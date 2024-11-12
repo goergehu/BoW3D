@@ -72,7 +72,9 @@ namespace BoW3D
 
             int loopCorrection(Frame* currentFrame, Frame* matchedFrame, vector<pair<int, int>> &vMatchedIndex, Eigen::Matrix3d &R, Eigen::Vector3d &t);
 
-            void retrieve(Frame* pCurrentFrame, int &loopFrameId, Eigen::Matrix3d &loopRelR, Eigen::Vector3d &loopRelt);           
+            void retrieve(Frame* pCurrentFrame, int &loopFrameId, Eigen::Matrix3d &loopRelR, Eigen::Vector3d &loopRelt); 
+
+            vector<pair<int, int>> candidateFrame;          
 
         private:
             LinK3D_Extractor* mpLinK3D_Extractor;
